@@ -1,0 +1,44 @@
+CITY OF WINTER S : UTILITYPMT  ID: x64 CO: CITY OF WINTER S
+Bill Paid-KOHLS DEPARTMENT STO
+Bill Paid-FAIRWINDS CREDIT UNI Conf
+Kindle Unltd
+Bill Paid-P N C  M C VISA
+NAVIENT
+To Loan
+
+
+Module for budget management
+Import back account statements
+Load statement to an existing master statement
+Json Data file contains details on bills
+
+New-BudgetBill
+    -Name
+    -NameMatch
+    -DueDate
+    -Account
+    -BudgetBillPath
+
+Get-BudgetBill
+    -Name
+    -BudgetBillPath
+
+Set-BudgetBill
+    -Name
+    -NameMatch
+    -DueDate
+    -Account
+    -BudgetBillPath
+
+New-BudgetAccount
+    -Name
+    -BudgetAccountPath
+
+Update-BudgetAccount
+    -Name
+    -BudgetAccountPath
+
+Find-BudgetBill
+    -Name
+    -Year
+    -Month
