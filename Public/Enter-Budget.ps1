@@ -1,4 +1,4 @@
-Function Invoke-Budget {
+Function Enter-Budget {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory)]
