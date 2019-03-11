@@ -9,7 +9,7 @@ Function Enter-Budget {
         Write-Warning -Message "Budget path not found: $Path"
     }
     Else {
-        $MainBudget = Get-childitem -Path $Path -Filter 'BudgetMain_1*.json'
+        $MainBudget = Get-childitem -Path $Path -Filter 'BudgetMain_*.json'
         if ($MainBudget) {
             $env:BudgetPath = $Path
         }

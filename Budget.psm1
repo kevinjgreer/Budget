@@ -1,5 +1,5 @@
 # USE THIS FILE FOR ADDITIONAL MODULE CODE.
-. $PSScriptRoot\init.ps1
+#. $PSScriptRoot\init.ps1
 
 $functionFolders = @('Public', 'Private')
 ForEach ($folder in $functionFolders) {
