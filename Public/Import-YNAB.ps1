@@ -1,10 +1,11 @@
-Function Open-Budget {
+Function Import-YNAB {
     [CmdletBinding()]
     Param(
         [Parameter()]
         [String]$Path = "C:\Users\kgreer\Downloads\YNAB Export - My Budget as of 2019-03-10 0803 PM\My Budget as of 2019-03-10 0803 PM - Budget.csv"
     )
     Begin {
+
         $Month = Get-date -UFormat %b
     }
 
@@ -38,7 +39,7 @@ Function Open-Budget {
             [PSCustomObject]@{
                 Group    = $Category."Category Group"
                 Category = $SplitCategory[0]
-                Amount   = $Amount
+                Amount   = [Double]$Amount
                 Method   = $SplitCategory[2]
                 Account  = $SplitCategory[3]
                 FundOn   = $FundOn

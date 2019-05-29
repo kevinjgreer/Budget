@@ -12,6 +12,14 @@ Import back account statements
 Load statement to an existing master statement
 Json Data file contains details on bills
 
+Import-CSVAdditionFinancial
+    default download location
+    look for file to Import
+    re-create file to import with correct format and remove garbage columns
+    name to something else
+    delete downloaded csv file
+
+
 New-BudgetBill
     -Name
     -NameMatch
