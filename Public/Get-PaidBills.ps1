@@ -20,7 +20,7 @@ function Get-PaidBills {
 
         $Bills = ConvertFrom-Json -InputObject (Get-Content -Path $Path -raw)
 
-        $LedgerCSV = Get-ChildItem -Path $Account -filter '*.csv' | Sort-Object -Descending | Select-Object -first 1
+        $LedgerCSV = Get-ChildItem -Path $Account -filter '*.csv' | Sort-Object -Descending LastWriteTime | Select-Object -first 1
         $Ledger = Import-Csv -Path $LedgerCSV.FullName | Where-Object { (Get-Date $_.Date) -GE (Get-Date $Date) }
 
         foreach ($Bill in $Bills) {
