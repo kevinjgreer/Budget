@@ -3,7 +3,7 @@ function Get-PaidBills {
     param (
 
         [Parameter()]
-        [String]$Path = "C:\users\kgreer\dropbox\budget\Bills.json",
+        [String]$Path = "C:\users\kgreer\dropbox\budget\Expenses.json",
 
         [Parameter()]
         [String]$Account = 'C:\users\kgreer\Dropbox\budget\Accounts\AdditionFinancial_47',
@@ -18,7 +18,7 @@ function Get-PaidBills {
 
     process {
 
-        $Bills = ConvertFrom-Json -InputObject (Get-Content -Path $Path -raw)
+        $Bills = (ConvertFrom-Json -InputObject (Get-Content -Path $Path -raw)) | Where-Object { $_.Category -match 'Immediate Obligation|Credit|Loan|Subscription'}
 
         $LedgerCSV = Get-ChildItem -Path $Account -filter '*.csv' | Sort-Object -Descending LastWriteTime | Select-Object -first 1
         $Ledger = Import-Csv -Path $LedgerCSV.FullName | Where-Object { (Get-Date $_.Date) -GE (Get-Date $Date) }
@@ -33,10 +33,13 @@ function Get-PaidBills {
                     $Amount = $Entry.Amount
                     $BillDate = $Entry.Date
                     [PSCustomObject]@{
-                        Bill        = $Bill.Bill
-                        Description = $Description
-                        Amount      = $Amount
-                        Date        = $BillDate
+                        Bill   = $Bill.Name
+                        Paid   = $True
+                        #Description = $Description
+                        Amount = $Amount
+                        Budgeted = $Bill.Budgeted
+                        Due = $Bill.Due
+                        Date   = $BillDate
                     }
                     break
                 }
@@ -45,10 +48,13 @@ function Get-PaidBills {
             }
             if ($FoundBill -eq $False) {
                 [PSCustomObject]@{
-                    Bill        = $Bill.Bill
-                    Description = $Null
-                    Amount      = $Null
-                    Date        = $Null
+                    Bill   = $Bill.Name
+                    Paid   = $False
+                    #Description = $Null
+                    Amount = $Null
+                    Budgeted = $Bill.Budgeted
+                    Due = $Bill.Due
+                    Date   = $Null
                 }
             }
         }
