@@ -1,13 +1,13 @@
 function Get-BudgetReport {
     [CmdletBinding()]
     param (
-        
+
     )
-    
+
     begin {
-        
+
     }
-    
+
     process {
 
         #TODO: Show monthly Income
@@ -20,10 +20,10 @@ function Get-BudgetReport {
                 'Monthly' { $MultiplyBy = 1 }
             }
             $TotalMonthlyIncome += ($Income.Amount * $MultiplyBy)
-            
+
         }
 
-        $AllExpense = Get-Expense
+        $AllExpense = Get-Expense | where active -eq $True
         $TotalMonthlyExpense = ($AllExpense.Budgeted | Measure-Object -Sum).Sum
 
         $FirstHalfMonthExpense = ($AllExpense | Where-Object { $_.Due -In (1..15) } | Select-Object -expand Budgeted | Measure-Object -Sum).Sum
@@ -36,7 +36,7 @@ function Get-BudgetReport {
         Write-Host "Monthly Expense  : $TotalMonthlyExpense"
         Write-Host "Difference       : $($TotalMonthlyIncome-$TotalMonthlyExpense)"
         Write-Host "`n"
-        
+
         Write-Output "`nFirst half Month Expenses: $($FirstHalfMonthExpense + ($NoDueDateExpenses/2)) (This includes half of ""No Due Date Expenses"")"
         Write-Output "__________________________"
         $AllExpense | Where-Object { $_.Due -In (1..15) } | Select-Object Name, Category, Due, Budgeted | Sort-Object Due
@@ -63,18 +63,18 @@ function Get-BudgetReport {
 
             }
         }
-        $Emergency = Emergency 
+        $Emergency = Emergency
         $Emergency | Format-List
         Write-Output "__________________________`n"
 
-        
-        $AllIncome | Format-Table
-        $AllExpense | Sort-Object Category | Format-Table 
 
-        
+        $AllIncome | Format-Table
+        $AllExpense | Sort-Object Category | Format-Table
+
+
     }
-    
+
     end {
-        
+
     }
 }

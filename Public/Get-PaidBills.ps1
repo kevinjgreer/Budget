@@ -3,10 +3,10 @@ function Get-PaidBills {
     param (
 
         [Parameter()]
-        [String]$Path = "C:\users\kgreer\dropbox\budget\Expenses.json",
+        [String]$Path = "C:\Users\kgreer\OneDrive\budget\Expenses.json",
 
         [Parameter()]
-        [String]$Account = 'C:\users\kgreer\Dropbox\budget\Accounts\AdditionFinancial_47',
+        [String]$Account = 'C:\Users\kgreer\OneDrive\budget\Accounts\AdditionFinancial_47',
 
         [Parameter()]
         [DateTime]$Date = "$((Get-Date).month)/1/$((Get-Date).Year)"

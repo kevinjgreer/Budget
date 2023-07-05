@@ -6,7 +6,7 @@ function Convert-CSVAdditionFinancial {
         [String]$Path,
 
         [Parameter()]
-        [String]$BudgetPath = 'C:\Users\kgreer\Dropbox\Budget',
+        [String]$BudgetPath = 'C:\Users\kgreer\OneDrive\Budget',
 
         [Parameter()]
         [String]$Account = 'AdditionFinancial_47'

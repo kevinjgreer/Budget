@@ -1,0 +1,7 @@
+        {
+            "Name": "Budget",
+            "Repository": [
+               "expIT"
+            ],
+            "Template": "expStandardModuleDEV"
+        }

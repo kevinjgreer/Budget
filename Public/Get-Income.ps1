@@ -3,12 +3,12 @@ function Get-Income {
     param (
 
         [Parameter()]
-        [String]$Path = "C:\users\kgreer\dropbox\budget\Income.json"
+        [String]$Path = "C:\Users\kgreer\OneDrive\budget\Income.json"
 
     )
-    
+
     begin {}
-    
+
     process {
 
         $AllIncome = ConvertFrom-Json -InputObject (Get-Content -Path $Path -Raw)
@@ -22,13 +22,13 @@ function Get-Income {
                 Name        = $Income.Name
                 Amount      = $Income.Amount
                 Monthly     = $Income.Amount * $MultiplyBy
-                Frequency = $Income.Frequency
+                Frequency   = $Income.Frequency
                 Description = $Income.Description
 
             }
-        
+
         }
-    
+
     }
     end {}
 }

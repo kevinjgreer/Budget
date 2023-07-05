@@ -6,7 +6,7 @@ function Append-Ledger {
         [String]$Path,
 
         [Parameter()]
-        [String]$BudgetPath = 'C:\Users\kgreer\Dropbox\Budget',
+        [String]$BudgetPath = 'C:\Users\kgreer\OneDrive\Budget',
 
         [Parameter(Mandatory)]
         [String]$Account
@@ -24,7 +24,7 @@ function Append-Ledger {
         $Content | Set-Content -Path $Path -Force
 
 
-        
+
         $CSVData = Import-Csv -Path $Path | Select-Object @{n = 'Date'; e = { ($_.Date).split(' ')[0] } }, Amount, Description
         $i = 0
         ForEach ($item in $CSVData) {

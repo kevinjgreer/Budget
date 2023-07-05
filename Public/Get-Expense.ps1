@@ -3,16 +3,16 @@ function Get-Expense {
     param (
 
         [Parameter()]
-        [String]$Path = "C:\users\kgreer\dropbox\budget\Expenses.json"
+        [String]$Path = "C:\Users\kgreer\OneDrive\budget\Expenses.json"
 
     )
-    
+
     begin {}
-    
+
     process {
-        [pscustomobject](ConvertFrom-Json -InputObject (Get-Content -Path 'C:\Users\kgreer\Dropbox\Budget\Expenses.json' -raw))    
+        [pscustomobject](ConvertFrom-Json -InputObject (Get-Content -Path 'C:\Users\kgreer\OneDrive\Budget\Expenses.json' -raw))
 
     }
-    
+
     end {}
 }
