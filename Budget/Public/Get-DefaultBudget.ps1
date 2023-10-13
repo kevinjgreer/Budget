@@ -16,7 +16,7 @@ function Get-DefaultBudget {
             $DefaultBudget
         }
         else {
-            Write-Error -Message "No default budget set.  Use Set-Budget -SetDefault to set a default budget"
+            Write-Error -Message "No default budget set.  Use Set-Budget -SetDefault to set a default budget, or New-Budget to create a new budget and set it as the default budget."
         }
     }
 

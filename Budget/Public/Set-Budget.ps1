@@ -7,7 +7,7 @@ function Set-Budget {
         $Name,
 
         [Parameter()]
-        [switch]$SetDefault
+        [bool]$SetDefault
     )
 
     begin {
@@ -21,13 +21,26 @@ function Set-Budget {
         if ($Budget) {
             $SaveJson = $false
             if ($PSBoundParameters.ContainsKey('SetDefault')) {
-                if ($Budget.Default -eq $true) {
-                    Write-Warning -Message "Budget $Name is already the default budget"
-                }
-                else {
-                    $Budget.Default = $true
-                    $AllBudgets | Where-Object { $_.Name -ne $Name } | ForEach-Object { $_.Default = $false }
-                    $SaveJson = $true
+                Switch ($SetDefault) {
+                    $True {
+                        if ($Budget.Default -eq $true) {
+                            Write-Warning -Message "Budget $Name is already the default budget"
+                        }
+                        else {
+                            $Budget.Default = $true
+                            $AllBudgets | Where-Object { $_.Name -ne $Name } | ForEach-Object { $_.Default = $false }
+                            $SaveJson = $true
+                        }
+                    } #end true
+                    $False {
+                        if ($Budget.Default -eq $false) {
+                            Write-Warning -Message "Budget $Name is already not the default budget"
+                        }
+                        else {
+                            $Budget.Default = $false
+                            $SaveJson = $true
+                        }
+                    } #end false
                 }
             }
 

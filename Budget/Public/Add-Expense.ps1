@@ -2,11 +2,11 @@ function Add-Expense {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$Name,
+        [string]$Expense,
 
         #parameter for budget name
-        [Parameter(Mandatory)]
-        [string]$Budget,
+        [Parameter()]
+        [string]$BudgetName,
 
         [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Debt', 'Healthcare', 'Subscriptions', 'Miscellaneous')]
         [Parameter(Mandatory)]
@@ -42,9 +42,24 @@ function Add-Expense {
     }
 
     process {
-        if (-Not (Get-Budget -Name $Budget)) {
-            Write-Error -Message "Budget $Budget does not exist"
-            Return
+
+
+
+
+        #Validate the budget name
+        if ($PSBoundParameters.ContainsKey('BudgetName')) {
+            $Budget = get-Budget -Name $BudgetName
+            if (-Not $Budget) {
+                Write-Error -Message "Budget $BudgetName does not exist"
+                Return
+            }
+        }
+        else {
+            $Budget = Get-DefaultBudget -ErrorAction SilentlyContinue
+            if (-Not $Budget) {
+                Write-Error -Message "No default budget set.  Please specify a Budget name, run Set-Budget -SetDefault to set a default budget, or New-Budget to create a new budget and set it as the default budget."
+                Return
+            }
         }
 
         Switch ($Type) {
@@ -85,8 +100,30 @@ function Add-Expense {
 
             }
         }
-        [PSCustomObject]@{
-            Name        = $Name
+
+
+        $ExpensesToReturn = @()
+        $ExpenseList = Get-Expense -BudgetName $Budget.Name
+        if ($ExpenseList) {
+            $ExpensesToReturn += $ExpenseList
+        }
+
+        #Region: Check if expense already exists
+        if ($ExpenseList.Expense -contains $Expense) {
+            Write-Error -Message "Expense $Expense already exists.  Please use a different name"
+            Return
+        }
+        #EndRegion
+
+
+        if (-not (Test-Path -Path "$($Budget.Path)\Expenses")) {
+            [void](New-Item -Path "$($Budget.Path)\Expenses" -ItemType Directory)
+            Write-Warning -Message "No Expenses directory found.  Creating Expenses directory"
+        }
+
+        #Region: Create expense json file or update existing expense json file
+        $NewExpense = [PSCustomObject]@{
+            Expense     = $Expense
             Category    = $Category
             Amount      = $Amount
             type        = $Type
@@ -95,7 +132,24 @@ function Add-Expense {
             Active      = $Active
             Description = $Description
             Note        = $Note
-        } #| ConvertTo-Json -Depth 1 | Out-File -FilePath "$($env:LOCALAPPDATA)\Budget\$Budget\Expenses\$Name.json" -Force
+        }
+
+        $ExpensesToReturn += $NewExpense
+        $ExpensesToReturn | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($Budget.Path)\Expenses\Expenses.json" -Force
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
     end {
 

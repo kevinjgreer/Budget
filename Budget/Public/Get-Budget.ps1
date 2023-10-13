@@ -24,8 +24,8 @@ function get-Budget {
                 $AllBudgets
             }
         }
-        Else {
-            $AllBudgets
+        else {
+            #Write-Warning -Message "No budgets found"
         }
     }
 
