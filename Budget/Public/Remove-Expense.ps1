@@ -37,16 +37,11 @@ function Remove-Expense {
             $ExpensesToReturn += $ExpenseList
         }
 
-
-        if ($ExpenseList.Expense -contains $Expense) {
-            $ExpenseList -=
-        }
-
         #Get the expense
-        $Expense = $Budget.Expenses | Where-Object { $_.Expense -eq $Expense }
-        if ($Expense) {
-            $Budget.Expenses.Remove($Expense)
-            $Budget | ConvertTo-Json | Set-Content -Path "$($env:localappdata)\Budget\$($Budget.Name).json"
+
+        if ($ExpensesToReturn.Expense -Contains $Expense) {
+            $ExpensesToReturn = $ExpensesToReturn | Where-Object { $_.Expense -ne $Expense }
+            $ExpensesToReturn | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($Budget.Path)\Expenses\Expenses.json" -Force
         }
         else {
             Write-Error -Message "Expense $Expense does not exist"
