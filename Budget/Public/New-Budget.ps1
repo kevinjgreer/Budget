@@ -1,4 +1,42 @@
 Function New-Budget {
+    <#
+.SYNOPSIS
+Creates a new budget with the specified name and path. The budget is used to manage finances, and this function creates the necessary directory structure, configuration files, and updates the list of all budgets.
+
+.DESCRIPTION
+The New-Budget function creates a new budget in the specified location with the given name. It creates a directory structure for the budget, including the main budget directory, subdirectories for accounts, and a configuration file. Additionally, it can set the new budget as the default budget, which is used in various budget-related operations.
+
+.PARAMETER Name
+The name of the new budget. This should be a valid folder name and must not contain any invalid characters like '/', ':', '*', '?', '"', '<', or '>'. This parameter is mandatory.
+
+.PARAMETER Path
+The path where the new budget directory should be created. It is mandatory and must point to an existing container (directory).
+
+.PARAMETER SetDefault
+Indicates whether to set the new budget as the default budget. If a default budget already exists, using this parameter will overwrite it. Use the -Force parameter to overwrite the existing default budget.
+
+.PARAMETER Force
+Forces overwriting the default budget if it already exists.
+
+.EXAMPLE
+PS C:\> New-Budget -Name "MyMonthlyBudget" -Path "C:\Budgets" -SetDefault
+Creates a new budget named "MyMonthlyBudget" in the "C:\Budgets" directory and sets it as the default budget. If a default budget already exists, it will be overwritten.
+
+.EXAMPLE
+PS C:\> New-Budget -Name "VacationFund" -Path "D:\Finances\Personal"
+Creates a new budget named "VacationFund" in the "D:\Finances\Personal" directory without setting it as the default budget.
+
+.NOTES
+File structure:
+- The main budget directory: "$Path\$Name"
+- Subdirectory for accounts: "$Path\$Name\Accounts"
+- Configuration file: "$Path\$Name\BudgetConfig.json"
+
+The function also maintains a list of all budgets in "$($env:LOCALAPPDATA)\Budget\AllBudgets.json".
+
+You can now add income, expenses, and accounts to this budget. Refer to the documentation for more details.
+#>
+
     [CmdletBinding()]
     Param(
         #Must be a valid foldername
