@@ -15,7 +15,7 @@ function Set-Expense {
         $NewExpenseName,
 
         [Parameter()]
-        [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Debt', 'Healthcare', 'Subscriptions', 'Miscellaneous')]
+        [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Credit', 'Loan', 'Healthcare', 'Subscriptions', 'Miscellaneous')]
         [String]
         $Category,
 
@@ -29,7 +29,7 @@ function Set-Expense {
         $Month,
 
         [Parameter()]
-        [ValidateRange(1, 31)]
+        [ValidateRange(0, 31)]
         [Int]
         $Day,
 
@@ -72,6 +72,8 @@ function Set-Expense {
         if ($ExpenseList) {
             $ExpensesToReturn += $ExpenseList
         }
+
+        #TODO: Handle if the expense is not found to set
 
         if ($PSBoundParameters.ContainsKey('NewExpenseName')) {
             if ($ExpensesToReturn.Expense -Contains $NewExpenseName) {

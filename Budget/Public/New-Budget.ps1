@@ -108,6 +108,8 @@ You can now add income, expenses, and accounts to this budget. Refer to the docu
         try {
             [VOID](New-Item -Path "$Path\$Name" -ItemType Directory -Force -ErrorAction Stop)
             [VOID](New-Item -Path "$Path\$Name\Accounts" -ItemType Directory -Force -ErrorAction Stop)
+            [VOID](New-Item -Path "$Path\$Name\Expense" -ItemType Directory -Force -ErrorAction Stop)
+            [VOID](New-Item -Path "$Path\$Name\Income" -ItemType Directory -Force -ErrorAction Stop)
         }
         Catch {
             Write-Error -Message "Failed to create directory. $($_.Exception.Message)"

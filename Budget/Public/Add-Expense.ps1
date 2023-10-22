@@ -8,7 +8,7 @@ function Add-Expense {
         [Parameter()]
         [string]$BudgetName,
 
-        [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Debt', 'Healthcare', 'Subscriptions', 'Miscellaneous')]
+        [ValidateSet('Essential', 'Discretionary', 'Savings', 'Annual', 'Credit', 'Loan', 'Healthcare', 'Subscription', 'Miscellaneous')]
         [Parameter(Mandatory)]
         [string]$Category,
 
@@ -23,7 +23,7 @@ function Add-Expense {
         [Parameter()]
         [int]$Month,
 
-        [ValidateRange(1, 31)]
+        [ValidateRange(0, 31)]
         [Parameter()]
         [int]$Day,
 
@@ -42,11 +42,7 @@ function Add-Expense {
     }
 
     process {
-
-
-
-
-        #Validate the budget name
+        #Region: Validate the budget name
         if ($PSBoundParameters.ContainsKey('BudgetName')) {
             $Budget = get-Budget -Name $BudgetName
             if (-Not $Budget) {
@@ -61,6 +57,7 @@ function Add-Expense {
                 Return
             }
         }
+        #EndRegion
 
         Switch ($Type) {
             'Monthly' {
@@ -135,8 +132,13 @@ function Add-Expense {
         }
 
         $ExpensesToReturn += $NewExpense
-        $ExpensesToReturn | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($Budget.Path)\Expenses\Expenses.json" -Force
-
+        try {
+            $ExpensesToReturn | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($Budget.Path)\Expenses\Expenses.json" -Force -ErrorAction stop
+        }
+        catch {
+            Write-Error -Message "Unable to write to $($Budget.Path)\Expenses\Expenses.json"
+            Return
+        }
 
 
 
