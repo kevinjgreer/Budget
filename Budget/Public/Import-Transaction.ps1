@@ -48,9 +48,10 @@ function Import-Transaction {
             $Date = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
             $ArchiveFiles = @()
             $ArchiveFiles += $Path
-            if (Test-Path "$BudgetPath\Accounts\$BankName\$AccountName\Ledger.csv") {
-                $LedgerFile = "$BudgetPath\Accounts\$BankName\$AccountName\Ledger.csv"
-                $ArchiveFiles += $LedgerFile
+            $LedgerPath = "$BudgetPath\Accounts\$BankName\$AccountName\Ledger.csv"
+            if (Test-Path -Path $LedgerPath) {
+                $LedgerFileExists = $true
+                $ArchiveFiles += $LedgerPath
             }
             Compress-Archive -Path $ArchiveFiles -DestinationPath "$BudgetPath\Accounts\$BankName\$AccountName\Backup\${FileName}_$Date.zip" -Force
             Start-Sleep -Seconds 3
@@ -64,15 +65,30 @@ function Import-Transaction {
                     $Content | Set-Content -Path $Path -Force
 
                     #Import the csv file
-                    $NewTransactions = Import-Csv -Path $Path
-                    #TODO: Get the main ledger csv file if it exists and import it
-                    if ($LedgerFile) {
-                        $LedgerTransactions = Import-Csv -Path $LedgerFile
-                        $a = Compare-Object -ReferenceObject $LedgerTransactions -DifferenceObject $NewTransactions -Property '2' Where-Object { $_.SideIndicator -eq '=>' }
-                        $a
+                    $Transactions = Import-Csv -Path $Path | Where-Object { $_.3 -notmatch 'pending' }
+
+                    if ($LedgerFileExists) {
+                        ################################
+                        $LedgerTransactions = Import-Csv -Path $LedgerPath
+                        #Get Unique Ledger Transactions using property 2 as the unique identifier
+                        $UniqueLedgerTransactions = $LedgerTransactions | Select-Object -ExpandProperty 2
+                        foreach ($Transaction in $Transactions) {
+                            $PromptDate = Get-Date $Transaction.Date -Format "MM/dd/yyyy"
+                            if ($UniqueLedgerTransactions -notcontains $Transaction.2) {
+                                Write-Host "Add $PromptDate, $($Transaction.Amount), $($Transaction.Description) $($Transaction.Amount)"
+                                $LedgerTransactions += $Transaction
+                            }
+                            else {
+                                Write-Host "Skip $PromptDate, $($Transaction.Amount), $($Transaction.Description) $($Transaction.Amount)"
+                            }
+                        }
+                        #export the transactions to the ledger file
+                        $LedgerTransactions | Export-Csv -Path $LedgerPath -NoTypeInformation -Force
                     }
                     else {
-
+                        #No ledger file found, This could be the first import. Copy the transactions to the ledger file
+                        Write-Host "No ledger file found.  Creating a new ledger file and adding all transactions."
+                        $Transactions | Export-Csv -Path $LedgerPath -NoTypeInformation -Force
                     }
 
 
