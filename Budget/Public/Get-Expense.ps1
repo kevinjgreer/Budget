@@ -40,7 +40,7 @@ function Get-Expense {
         if ($AllExpenses) {
             if ($PSBoundParameters.ContainsKey('Expense')) {
                 foreach ($Item in $Expense) {
-                    $AllExpenses | Where-Object { $_.Expense -eq $Item }
+                    $AllExpenses | Where-Object { $_.Expense -like "*$Item*" }
                 }
             }
             else {

@@ -15,7 +15,7 @@ function Set-Expense {
         $NewExpenseName,
 
         [Parameter()]
-        [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Credit', 'Loan', 'Healthcare', 'Subscriptions', 'Miscellaneous')]
+        [ValidateSet('Essentials', 'Discretionary', 'Savings', 'Annual', 'Credit', 'Loan', 'Healthcare', 'Subscription', 'Miscellaneous')]
         [String]
         $Category,
 
@@ -113,6 +113,9 @@ function Set-Expense {
         }
         if ($PSBoundParameters.ContainsKey('Amount')) {
             $ExpenseToSet.Amount = $Amount
+        }
+        if ($PSBoundParameters.ContainsKey('Category')) {
+            $ExpenseToSet.Category = $Category
         }
         if ($PSBoundParameters.ContainsKey('Month')) {
             $ExpenseToSet.Month = $OutputMonth

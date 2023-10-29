@@ -16,7 +16,7 @@ function Find-Transaction {
 
         [Parameter()]
         [String]
-        $Description,
+        $Description = '*',
 
         [ValidateSet('Withdrawl', 'Deposit')]
         [Parameter()]
@@ -90,12 +90,12 @@ function Find-Transaction {
             }
         }
         else {
-            $BankPath = "$($Budget.Path)\Accounts"
-            $BankFolders = Get-ChildItem -Path $BankPath -Directory
-            if ($BankFolders.Count -eq 1) {
-                $BankName = $BankFolders.Name
+            $FindBank = Get-ChildItem -Path "$($Budget.Path)\Accounts" -Directory
+            if ($FindBank.Count -eq 1) {
+                $BankName = $FindBank.Name
+                $BankPath = "$($Budget.Path)\Accounts\$BankName"
             }
-            elseif ($BankFolders.Count -gt 1) {
+            elseif ($BankFolder.Count -gt 1) {
                 Write-Error -Message "Multiple banks discovered. Please specify a bank name."
                 Return
             }
@@ -104,38 +104,23 @@ function Find-Transaction {
                 Return
             }
         }
-
-        $BankPath = "$($Budget.Path)\Accounts"
-        $BankFolders = Get-ChildItem -Path $BankPath -Directory
-        if ($BankFolders.Count -eq 1) {
-            $BankName = $BankFolders.Name
-        }
-        elseif (-not $BankName) {
-            Write-Error -Message "Multiple banks discovered. Please specify a bank name."
-            Return
-        }
-
-        if (-not (Test-Path -Path "$BankPath\$BankName")) {
-            Write-Error -Message "Bank $BankName does not exist"
-            Return
-        }
         #EndRegion
 
         #Region: Validate the account name
         if ($PSBoundParameters.ContainsKey('AccountName')) {
-            $AccountPath = "$BankPath\$BankName\$AccountName"
+            $AccountPath = "$BankPath\$AccountName"
             if (-Not (Test-Path -Path $AccountPath)) {
                 Write-Error -Message "Account $AccountName does not exist"
                 Return
             }
         }
         else {
-            $AccountPath = "$BankPath\$BankName"
-            $AccountFolders = Get-ChildItem -Path $AccountPath -Directory
-            if ($AccountFolders.Count -eq 1) {
-                $AccountName = $AccountFolders.Name
+            $FindAccount = Get-ChildItem -Path $BankPath -Directory
+            if ($FindAccount.Count -eq 1) {
+                $AccountName = $FindAccount.Name
+                $AccountPath = "$BankPath\$AccountName"
             }
-            elseif ($AccountFolders.Count -gt 1) {
+            elseif ($FindAccount.Count -gt 1) {
                 Write-Error -Message "Multiple accounts discovered. Please specify an account name."
                 Return
             }
@@ -159,13 +144,66 @@ function Find-Transaction {
         ##}
         #EndRegion
 
-        $Description
-        $Type
-        $MinimumAmount
-        $MaximumAmount
-        $StartDate
-        $EndDate
+        #Load the ledger file for the account if it exists
+        $LedgerPath = "$AccountPath\Ledger.csv"
+        if (Test-Path -Path $LedgerPath) {
+            $Ledger = Import-Csv -Path $LedgerPath
+        }
+        else {
+            Write-Warning -Message "No ledger file found for $AccountName.  Please import transactions first."
+        }
 
+        if ($PSBoundParameters.ContainsKey('Description')) {
+            $Description = $Description = "*$Description*"
+        }
+
+        Switch ($BankName) {
+            'AdditionFinancial' {
+                Switch ($Type) {
+                    'Withdrawl' {
+                        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Withdrawal' }
+                        #WithDrawal amount is a negative number
+                        Foreach ($Transaction in $AllTransactions) {
+                            $Amount = [Decimal]($Transaction.Amount) * -1
+                            $Date = Get-Date ($Transaction.Date)
+                            $TransactionDescription = ($Transaction.Description)
+                            if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
+                                [PSCustomObject]@{
+                                    Date        = $Date
+                                    Amount      = $Amount
+                                    Description = $TransactionDescription
+                                }
+                            }
+                        }
+
+                    }
+                    'Deposit' {
+                        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Deposit' }
+                        #Deposit amount is a positive number
+                        Foreach ($Transaction in $AllTransactions) {
+                            $Amount = [Decimal]($Transaction.Amount)
+                            $Date = Get-Date ($Transaction.Date)
+                            $TransactionDescription = $Transaction.Description
+                            if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
+                                [PSCustomObject]@{
+                                    Date        = $Date
+                                    Amount      = $Amount
+                                    Description = $TransactionDescription
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            'Chase' {}
+            'Discover' {}
+            'WellsFargo' {}
+            default {
+                Write-Error -Message "Bank $BankName is not supported"
+                Return
+            }
+        }
     }
 
     end {
