@@ -1,7 +1,7 @@
 function Find-Transaction {
     [CmdletBinding()]
     param (
-        #parameters for the transaction description, type (Withdrawl or Deposit), minimum amount, maximum amount, start date, end date and any other useful parameters
+        #parameters for the transaction description, type (Withdrawal or Deposit), minimum amount, maximum amount, start date, end date and any other useful parameters
         [Parameter()]
         [String]
         $BudgetName,
@@ -15,7 +15,7 @@ function Find-Transaction {
         $AccountName,
 
         [Parameter()]
-        [String]
+        [String[]]
         $Description = '*',
 
         [ValidateSet('Withdrawl', 'Deposit')]
@@ -129,19 +129,6 @@ function Find-Transaction {
                 Return
             }
         }
-
-
-
-
-        ##$AccountPath = "$BankPath\$BankName"
-        ##$AccountFolders = Get-ChildItem -Path $AccountPath -Directory
-        ##if ($AccountFolders.Count -eq 1) {
-        ##    $AccountName = $AccountFolders.Name
-        ##}
-        ##elseif (-not $AccountName) {
-        ##    Write-Error -Message "Multiple accounts discovered. Please specify an account name."
-        ##    Return
-        ##}
         #EndRegion
 
         #Load the ledger file for the account if it exists
@@ -154,7 +141,15 @@ function Find-Transaction {
         }
 
         if ($PSBoundParameters.ContainsKey('Description')) {
-            $Description = $Description = "*$Description*"
+            #if the description contains a | then split the description into an array
+            if ($Description -match '\|') {
+                $Description = $Description -split '\|'
+            }
+            #for loop to add "* to the beginning and end of each description item"
+            for ($i = 0; $i -lt $Description.Count; $i++) {
+                $Description[$i] = "*$($Description[$i])*"
+            }
+            #!$Description = $Description = "*$Description*"
         }
 
         Switch ($BankName) {
@@ -167,13 +162,22 @@ function Find-Transaction {
                             $Amount = [Decimal]($Transaction.Amount) * -1
                             $Date = Get-Date ($Transaction.Date)
                             $TransactionDescription = ($Transaction.Description)
-                            if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
-                                [PSCustomObject]@{
-                                    Date        = $Date
-                                    Amount      = $Amount
-                                    Description = $TransactionDescription
+                            foreach ($DescriptionItem in $Description) {
+                                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                                    [PSCustomObject]@{
+                                        Date        = $Date
+                                        Amount      = $Amount
+                                        Description = $TransactionDescription
+                                    }
                                 }
                             }
+                            #if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
+                            #    [PSCustomObject]@{
+                            #        Date        = $Date
+                            #        Amount      = $Amount
+                            #        Description = $TransactionDescription
+                            #    }
+                            #}
                         }
 
                     }
@@ -184,13 +188,23 @@ function Find-Transaction {
                             $Amount = [Decimal]($Transaction.Amount)
                             $Date = Get-Date ($Transaction.Date)
                             $TransactionDescription = $Transaction.Description
-                            if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
-                                [PSCustomObject]@{
-                                    Date        = $Date
-                                    Amount      = $Amount
-                                    Description = $TransactionDescription
+                            #TODO: if there is more than one description, then split the description and loop through each description
+                            foreach ($DescriptionItem in $Description) {
+                                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                                    [PSCustomObject]@{
+                                        Date        = $Date
+                                        Amount      = $Amount
+                                        Description = $TransactionDescription
+                                    }
                                 }
                             }
+                            #if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
+                            #    [PSCustomObject]@{
+                            #        Date        = $Date
+                            #        Amount      = $Amount
+                            #        Description = $TransactionDescription
+                            #    }
+                            #}
                         }
 
                     }
