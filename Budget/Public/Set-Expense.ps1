@@ -81,9 +81,15 @@ function Set-Expense {
             }
         }
 
-        $ExpenseToSet = $ExpensesToReturn | Where-Object { $_.Expense -eq $Expense }
+        #$ExpenseToSet = $ExpensesToReturn | Where-Object { $_.Expense -eq $Expense }
+        $ExpenseToSet = $ExpensesToReturn | Where-Object { $_.Expense -like "*$Expense*" }
         if (-Not $ExpenseToSet) {
-            Write-Error -Message "Expense $Expense does not exist"
+            Write-Error -Message "Expense $Expense does not exist."
+            Return
+        }
+        elseif ($ExpenseToSet.Count -gt 1) {
+            Write-Error -Message "Multiple expenses found matching $Expense.  Please specify a more specific expense name."
+            Return
         }
 
         Switch ($ExpenseToSet.Type) {
@@ -136,6 +142,13 @@ function Set-Expense {
         #replace $expenseToSet in $expensesToReturn
         #$ExpensesToReturn = $ExpensesToReturn | Where-Object { $_.Expense -ne $Expense }
         #$ExpensesToReturn.Add($ExpenseToSet)
+
+        #Remove the BudgetAmount property before saving.  This is because the BudgetAmount is added to the expense output when it is returned from Get-Expense for display purposes only.
+        #Because the expenses were returned from Get-Expense, the BudgetAmount property was added to the expense object and needs to be removed before saving the expense object to the json file
+
+        #Each $ExpensesToReturn object now has the property BudgetAmount.  This property is added to the object when it is returned from Get-Expense.
+        #The property needs to be removed from each object before saving the objects to the json file
+        $ExpensesToReturn | ForEach-Object { $_.PSObject.Properties.Remove('BudgetAmount') }
         $ExpensesToReturn | ConvertTo-Json -Depth 10 | Out-File -FilePath "$($Budget.Path)\Expenses\Expenses.json" -Force
     }
 

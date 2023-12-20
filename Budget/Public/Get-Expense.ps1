@@ -40,11 +40,38 @@ function Get-Expense {
         if ($AllExpenses) {
             if ($PSBoundParameters.ContainsKey('Expense')) {
                 foreach ($Item in $Expense) {
-                    $AllExpenses | Where-Object { $_.Expense -like "*$Item*" }
+                    $FoundExpenses = $AllExpenses | Where-Object { $_.Expense -like "*$Item*" }
+                    foreach ($FoundExpense in $FoundExpenses) {
+                        Switch ($FoundExpense.Type) {
+                            'Monthly' {
+                                $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value $FoundExpense.Amount
+                            }
+                            'Quarterly' {
+                                $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value ([math]::Round($FoundExpense.Amount / 3, 2))
+                            }
+                            'Yearly' {
+                                $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value ([math]::Round($FoundExpense.Amount / 12, 2))
+                            }
+                        }
+                        $FoundExpense
+                    }
                 }
             }
             else {
-                $AllExpenses
+                foreach ($FoundExpense in $AllExpenses) {
+                    Switch ($FoundExpense.Type) {
+                        'Monthly' {
+                            $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value $FoundExpense.Amount
+                        }
+                        'Quarterly' {
+                            $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value ([math]::Round($FoundExpense.Amount / 3, 2))
+                        }
+                        'Yearly' {
+                            $FoundExpense | Add-Member -MemberType NoteProperty -Name 'BudgetAmount' -Value ([math]::Round($FoundExpense.Amount / 12, 2))
+                        }
+                    }
+                    $FoundExpense
+                }
             }
         }
         else {

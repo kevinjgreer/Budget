@@ -1,8 +1,7 @@
 # Changelog for Budget
 
 ## [Unreleased]
-### Removed
-- Removed ValidatePattern attribute for Credential param in Public/Copy-expCMClientSetupFiles.ps1.
+
 
 ---
 ---

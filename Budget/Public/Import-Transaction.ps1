@@ -106,7 +106,10 @@ function Import-Transaction {
                     Return
                 }
             } #End Switch
-        }
+
+            #Delete the csv file
+            Remove-Item -Path $Path -Force
+        } #End Foreach
     }
 
     end {

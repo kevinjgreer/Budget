@@ -103,7 +103,7 @@ function Set-Income {
             }
         }
 
-        $IncomeToSet | ConvertTo-Json -Depth 10 | Set-Content -Path "$($Budget.Path)\Income\Income.json" -Force
+        $IncomesToReturn | ConvertTo-Json -Depth 10 | Set-Content -Path "$($Budget.Path)\Income\Income.json" -Force
     }
 
     end {

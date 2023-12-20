@@ -18,10 +18,10 @@ function Find-Transaction {
         [String[]]
         $Description = '*',
 
-        [ValidateSet('Withdrawl', 'Deposit')]
+        [ValidateSet('Withdrawal', 'Deposit', 'All')]
         [Parameter()]
         [String]
-        $Type = 'Withdrawl',
+        $Type = 'Withdrawal',
 
         [ValidateScript({
                 if ($_ -ge 0 -and $_ -le [decimal]::MaxValue) {
@@ -142,6 +142,8 @@ function Find-Transaction {
 
         if ($PSBoundParameters.ContainsKey('Description')) {
             #if the description contains a | then split the description into an array
+            #this allows for multiple descriptions to be searched for even if one or more contain a '|'
+            #(i.e. 'Target|Walmart', 'Publix' -- This will split into 3 descriptions: 'Target', 'Walmart', 'Publix' )
             if ($Description -match '\|') {
                 $Description = $Description -split '\|'
             }
@@ -149,66 +151,121 @@ function Find-Transaction {
             for ($i = 0; $i -lt $Description.Count; $i++) {
                 $Description[$i] = "*$($Description[$i])*"
             }
-            #!$Description = $Description = "*$Description*"
         }
 
         Switch ($BankName) {
             'AdditionFinancial' {
-                Switch ($Type) {
-                    'Withdrawl' {
-                        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Withdrawal' }
-                        #WithDrawal amount is a negative number
-                        Foreach ($Transaction in $AllTransactions) {
-                            $Amount = [Decimal]($Transaction.Amount) * -1
-                            $Date = Get-Date ($Transaction.Date)
-                            $TransactionDescription = ($Transaction.Description)
-                            foreach ($DescriptionItem in $Description) {
-                                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
-                                    [PSCustomObject]@{
-                                        Date        = $Date
-                                        Amount      = $Amount
-                                        Description = $TransactionDescription
-                                    }
-                                }
-                            }
-                            #if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
-                            #    [PSCustomObject]@{
-                            #        Date        = $Date
-                            #        Amount      = $Amount
-                            #        Description = $TransactionDescription
-                            #    }
-                            #}
-                        }
-
+                $MatchTransactionType = switch ($Type) {
+                    'Withdrawal' {
+                        'Withdrawal'
                     }
                     'Deposit' {
-                        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Deposit' }
-                        #Deposit amount is a positive number
-                        Foreach ($Transaction in $AllTransactions) {
-                            $Amount = [Decimal]($Transaction.Amount)
-                            $Date = Get-Date ($Transaction.Date)
-                            $TransactionDescription = $Transaction.Description
-                            #TODO: if there is more than one description, then split the description and loop through each description
-                            foreach ($DescriptionItem in $Description) {
-                                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
-                                    [PSCustomObject]@{
-                                        Date        = $Date
-                                        Amount      = $Amount
-                                        Description = $TransactionDescription
-                                    }
-                                }
-                            }
-                            #if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$Description*") {
-                            #    [PSCustomObject]@{
-                            #        Date        = $Date
-                            #        Amount      = $Amount
-                            #        Description = $TransactionDescription
-                            #    }
-                            #}
-                        }
-
+                        'Deposit'
+                    }
+                    'All' {
+                        'Withdrawal|Deposit'
                     }
                 }
+                #Get all transactions that match the transaction type (Withdrawal, Deposit, or All)
+                $AllTransactions = $Ledger | Where-Object { $_.3 -match $MatchTransactionType }
+                Foreach ($Transaction in $AllTransactions) {
+                    Switch -regex ($Transaction.3) {
+                        'Withdrawal' {
+                            #WithDrawal amount is a negative number
+                            $Amount = [Decimal]($Transaction.Amount) * -1
+                            $TransactionType = 'W'
+                        }
+                        'Deposit' {
+                            #Deposit amount is a positive number
+                            $Amount = [Decimal]($Transaction.Amount)
+                            $TransactionType = 'D'
+                        }
+                    }
+                    $Date = Get-Date ($Transaction.Date)
+                    $TransactionDescription = $Transaction.Description
+                    foreach ($DescriptionItem in $Description) {
+                        if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                            [PSCustomObject]@{
+                                Date        = $Date
+                                type        = $TransactionType
+                                Amount      = $Amount
+                                Description = $TransactionDescription
+                            }
+                        }
+                    }
+                }
+
+                #Old code - Delete once new code is thoroughly tested
+                ######Switch ($Type) {
+                ######    'Withdrawal' {
+                ######        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Withdrawal' }
+                ######        #WithDrawal amount is a negative number
+                ######        Foreach ($Transaction in $AllTransactions) {
+                ######            $Amount = [Decimal]($Transaction.Amount) * -1
+                ######            $Date = Get-Date ($Transaction.Date)
+                ######            $TransactionDescription = ($Transaction.Description)
+                ######            foreach ($DescriptionItem in $Description) {
+                ######                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                ######                    [PSCustomObject]@{
+                ######                        Date        = $Date
+                ######                        Type        = 'W'
+                ######                        Amount      = $Amount
+                ######                        Description = $TransactionDescription
+                ######                    }
+                ######                }
+                ######            }
+                ######        }
+                ######
+                ######    }
+                ######    'Deposit' {
+                ######        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Deposit' }
+                ######        #Deposit amount is a positive number
+                ######        Foreach ($Transaction in $AllTransactions) {
+                ######            $Amount = [Decimal]($Transaction.Amount)
+                ######            $Date = Get-Date ($Transaction.Date)
+                ######            $TransactionDescription = $Transaction.Description
+                ######            foreach ($DescriptionItem in $Description) {
+                ######                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                ######                    [PSCustomObject]@{
+                ######                        Date        = $Date
+                ######                        Type        = 'D'
+                ######                        Amount      = $Amount
+                ######                        Description = $TransactionDescription
+                ######                    }
+                ######                }
+                ######            }
+                ######        }
+                ######    }
+                ######    'All' {
+                ######        $AllTransactions = $Ledger | Where-Object { $_.3 -match 'Withdrawal|Deposit' }
+                ######        #Deposit amount is a positive number
+                ######        #WithDrawal amount is a negative number
+                ######        Foreach ($Transaction in $AllTransactions) {
+                ######            Switch -regex ($Transaction.3) {
+                ######                'Withdrawal' {
+                ######                    $Amount = [Decimal]($Transaction.Amount) * -1
+                ######                    $TransactionType = 'W'
+                ######                }
+                ######                'Deposit' {
+                ######                    $Amount = [Decimal]($Transaction.Amount)
+                ######                    $TransactionType = 'D'
+                ######                }
+                ######            }
+                ######            $Date = Get-Date ($Transaction.Date)
+                ######            $TransactionDescription = $Transaction.Description
+                ######            foreach ($DescriptionItem in $Description) {
+                ######                if ($Amount -ge $MinimumAmount -and $Amount -le $MaximumAmount -and $Date -ge $StartDate -and $Date -le $EndDate -and $TransactionDescription -like "*$DescriptionItem*") {
+                ######                    [PSCustomObject]@{
+                ######                        Date        = $Date
+                ######                        type        = $TransactionType
+                ######                        Amount      = $Amount
+                ######                        Description = $TransactionDescription
+                ######                    }
+                ######                }
+                ######            }
+                ######        }
+                ######    }
+                ######}
             }
             'Chase' {}
             'Discover' {}
